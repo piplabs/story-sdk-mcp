@@ -269,10 +269,10 @@ class StoryService:
 
             # Create metadata structure for registration
             registration_metadata = {
-                "ipMetadataURI": ip_metadata_uri,
-                "ipMetadataHash": ip_metadata_hash.hex(),
-                "nftMetadataURI": nft_metadata_uri,
-                "nftMetadataHash": nft_metadata_hash.hex()
+                "ip_metadata_uri": ip_metadata_uri,
+                "ip_metadata_hash": ip_metadata_hash.hex(),
+                "nft_metadata_uri": nft_metadata_uri,
+                "nft_metadata_hash": nft_metadata_hash.hex()
             }
 
             return {
@@ -333,16 +333,16 @@ class StoryService:
                     'royalty_policy': "0xBe54FB168b3c982b7AaE60dB6CF75Bd8447b390E",
                     'default_minting_fee': 0,
                     'expiration': 0,
-                    'commercial_use': True,
+                    'commercial_use': commercial_rev_share > 0,
                     'commercial_attribution': False,
                     'commercializer_checker': "0x0000000000000000000000000000000000000000",
                     'commercializer_checker_data': "0x0000000000000000000000000000000000000000",
                     'commercial_rev_share': commercial_rev_share,
                     'commercial_rev_ceiling': 0,
                     'derivatives_allowed': derivatives_allowed,
-                    'derivatives_attribution': True,
+                    'derivatives_attribution': derivatives_allowed,
                     'derivatives_approval': False,
-                    'derivatives_reciprocal': True,
+                    'derivatives_reciprocal': derivatives_allowed,
                     'derivative_rev_ceiling': 0,
                     'currency': "0x1514000000000000000000000000000000000000",
                     'uri': ""
@@ -359,21 +359,22 @@ class StoryService:
                 }
             }]
 
-            # Use provided registration_metadata or create default structure
-            ip_metadata = registration_metadata if registration_metadata else {
-                "ipMetadataURI": "",
-                "ipMetadataHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-                "nftMetadataURI": "",
-                "nftMetadataHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
+            # Build kwargs for mintAndRegisterIpAssetWithPilTerms
+            kwargs = {
+                'spg_nft_contract': spg_nft_contract,
+                'terms': terms,
+                'recipient': recipient if recipient else self.account.address,
+                'ip_metadata': registration_metadata,
+                'allow_duplicates': True
             }
 
-            response = self.client.IPAsset.mintAndRegisterIpAssetWithPilTerms(
-                spg_nft_contract=spg_nft_contract,
-                terms=terms,
-                ip_metadata=ip_metadata,
-                recipient=recipient if recipient else self.account.address,
-                allow_duplicates=True
-            )
+            print("Debug - registration_metadata:", json.dumps(registration_metadata, indent=2))
+            
+            # Only add ip_metadata if registration_metadata is provided
+            # if registration_metadata:
+            #     kwargs['ip_metadata'] = registration_metadata
+
+            response = self.client.IPAsset.mintAndRegisterIpAssetWithPilTerms(**kwargs)
 
             return {
                 'txHash': response.get('txHash'),

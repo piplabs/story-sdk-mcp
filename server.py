@@ -171,7 +171,8 @@ def mint_and_register_ip_with_terms(
             f"Transaction Hash: {response['txHash']}\n"
             f"IP ID: {response['ipId']}\n"
             f"Token ID: {response['tokenId']}\n"
-            f"License Terms IDs: {response['licenseTermsIds']}"
+            f"License Terms IDs: {response['licenseTermsIds']}\n"
+            f"View the IPA here: https://aeneid.explorer.story.foundation/ipa/{response['ipId']}"
         )
     except Exception as e:
         return f"Error minting and registering IP with terms: {str(e)}"
