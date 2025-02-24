@@ -3,6 +3,8 @@ from story_protocol_python_sdk.story_client import StoryClient
 import requests
 import os
 from typing import Union
+import time
+import json
 
 class StoryService:
     def __init__(self, rpc_url: str, private_key: str):
@@ -13,6 +15,9 @@ class StoryService:
 
         self.account = self.web3.eth.account.from_key(private_key)
         self.client = StoryClient(web3=self.web3, account=self.account, chain_id=1315)
+        
+        # Add default license template
+        self.LICENSE_TEMPLATE = "0x2E896b0b2Fdb7457499B56AAaA4AE55BCB4Cd316"
         
         # Initialize Pinata JWT
         self.pinata_jwt = os.getenv('PINATA_JWT')
@@ -69,43 +74,22 @@ class StoryService:
             max_revenue_share: Optional maximum revenue share percentage (0-100,000,000)
         """
         try:
-            LICENSE_TEMPLATE = "0x2E896b0b2Fdb7457499B56AAaA4AE55BCB4Cd316"
-            
-            # Verify IP exists
-            is_registered = self.client.IPAsset.ip_asset_registry_client.isRegistered(licensor_ip_id)
-            if not is_registered:
-                raise ValueError("IP is not registered")
-
-            # Verify license terms are attached
-            is_attached = self.client.License.license_registry_client.hasIpAttachedLicenseTerms(
-                licensor_ip_id,
-                LICENSE_TEMPLATE,
-                license_terms_id
-            )
-            if not is_attached:
-                raise ValueError("License terms are not attached to this IP")
-
             # Build kwargs dict with only provided parameters
             kwargs = {
                 'licensor_ip_id': licensor_ip_id,
-                'license_template': LICENSE_TEMPLATE,
+                'license_template': self.LICENSE_TEMPLATE,  # Use default template
                 'license_terms_id': license_terms_id,
                 'amount': amount,
                 'receiver': receiver if receiver else self.account.address
             }
             
-            # Only add optional parameters if they were provided
             if max_minting_fee is not None:
                 kwargs['max_minting_fee'] = max_minting_fee
             if max_revenue_share is not None:
                 kwargs['max_revenue_share'] = max_revenue_share
 
             response = self.client.License.mintLicenseTokens(**kwargs)
-
-            return {
-                'txHash': response.get('txHash'),
-                'licenseTokenIds': response.get('licenseTokenIds')
-            }
+            return response
 
         except Exception as e:
             print(f"Error minting license tokens: {str(e)}")
@@ -204,7 +188,7 @@ class StoryService:
             print(f"Error uploading to IPFS: {str(e)}")
             raise
 
-    def create_nft_metadata(
+    def create_ip_metadata(
         self,
         image_uri: str,
         name: str,
@@ -212,55 +196,122 @@ class StoryService:
         attributes: list = None
     ) -> dict:
         """
-        Create and upload NFT metadata to IPFS
+        Create both NFT and IP metadata and upload to IPFS
         
-        :param image_uri: IPFS URI of the uploaded image
-        :param name: Name of the NFT
-        :param description: Description of the NFT
-        :param attributes: List of attribute dictionaries
-        :return: Metadata dictionary and IPFS URI for the metadata
+        Args:
+            image_uri: IPFS URI of the uploaded image
+            name: Name of the NFT/IP
+            description: Description of the NFT/IP
+            attributes: Optional list of attribute dictionaries
+        Returns:
+            dict: Both metadata URIs and their hashes
         """
         if not self.ipfs_enabled:
             raise Exception("IPFS functions are disabled. Please provide PINATA_JWT environment variable.")
 
         try:
-            metadata = {
+            # Get image hash if it's a URL
+            if image_uri.startswith('http'):
+                image_hash = self._get_file_hash(image_uri)
+            else:
+                # For IPFS URIs, extract hash from URI
+                image_hash = image_uri.replace('ipfs://', '')
+            
+            # Create NFT metadata (standard ERC721 format)
+            nft_metadata = {
                 "name": name,
                 "description": description,
                 "image": image_uri,
                 "attributes": attributes or []
             }
 
-            headers = {
-                'Authorization': f'Bearer {self.pinata_jwt}',
-                'Content-Type': 'application/json'
+            # Create IP metadata following Story Protocol standard
+            ip_metadata = {
+                "title": name,
+                "description": description,
+                "createdAt": int(time.time()),
+                "image": image_uri,
+                "imageHash": f"0x{image_hash}",  # Add 0x prefix
+                "mediaUrl": image_uri,
+                "mediaHash": f"0x{image_hash}",  # Same as imageHash since they point to same file
+                "mediaType": "image/png"  # Adjust based on actual image type
             }
 
-            response = requests.post(
+            # Upload NFT metadata to IPFS
+            nft_response = requests.post(
                 'https://api.pinata.cloud/pinning/pinJSONToIPFS',
-                json=metadata,
-                headers=headers
+                json=nft_metadata,
+                headers={
+                    'Authorization': f'Bearer {self.pinata_jwt}',
+                    'Content-Type': 'application/json'
+                }
             )
+            if nft_response.status_code != 200:
+                raise Exception(f"Failed to upload NFT metadata: {nft_response.text}")
+            nft_metadata_uri = f"ipfs://{nft_response.json()['IpfsHash']}"
+            
+            # Upload IP metadata to IPFS
+            ip_response = requests.post(
+                'https://api.pinata.cloud/pinning/pinJSONToIPFS',
+                json=ip_metadata,
+                headers={
+                    'Authorization': f'Bearer {self.pinata_jwt}',
+                    'Content-Type': 'application/json'
+                }
+            )
+            if ip_response.status_code != 200:
+                raise Exception(f"Failed to upload IP metadata: {ip_response.text}")
+            ip_metadata_uri = f"ipfs://{ip_response.json()['IpfsHash']}"
 
-            if response.status_code != 200:
-                raise Exception(f"Failed to upload metadata: {response.text}")
+            # Generate hashes of the metadata JSONs
+            nft_metadata_hash = self.web3.keccak(text=json.dumps(nft_metadata, sort_keys=True))
+            ip_metadata_hash = self.web3.keccak(text=json.dumps(ip_metadata, sort_keys=True))
 
-            ipfs_hash = response.json()['IpfsHash']
+            # Create metadata structure for registration
+            registration_metadata = {
+                "ipMetadataURI": ip_metadata_uri,
+                "ipMetadataHash": ip_metadata_hash.hex(),
+                "nftMetadataURI": nft_metadata_uri,
+                "nftMetadataHash": nft_metadata_hash.hex()
+            }
+
             return {
-                'metadata': metadata,
-                'metadata_uri': f"ipfs://{ipfs_hash}"
+                'nft_metadata': nft_metadata,
+                'nft_metadata_uri': nft_metadata_uri,
+                'nft_metadata_hash': nft_metadata_hash.hex(),
+                'ip_metadata': ip_metadata,
+                'ip_metadata_uri': ip_metadata_uri,
+                'ip_metadata_hash': ip_metadata_hash.hex(),
+                'registration_metadata': registration_metadata
             }
 
         except Exception as e:
             print(f"Error creating metadata: {str(e)}")
             raise
 
+    async def _get_file_hash(self, url: str) -> str:
+        """
+        Get hash of a file from its URL using web3's keccak
+        
+        Args:
+            url: URL of the image/media file
+        Returns:
+            str: Hash in hex format without 0x prefix
+        """
+        response = requests.get(url)
+        if response.status_code != 200:
+            raise Exception(f"Failed to download file: {response.text}")
+        
+        # Hash the raw bytes using web3's keccak
+        file_hash = self.web3.keccak(response.content)
+        return file_hash.hex()[2:]  # Remove 0x prefix
+
     def mint_and_register_ip_with_terms(
         self,
         spg_nft_contract: str,
-        nft_metadata_uri: str,
         commercial_rev_share: int,
         derivatives_allowed: bool,
+        registration_metadata: dict = None,
         recipient: str = None
     ) -> dict:
         """
@@ -271,6 +322,7 @@ class StoryService:
             nft_metadata_uri: URI of the NFT metadata on IPFS
             commercial_rev_share: Percentage of revenue share (0-100)
             derivatives_allowed: Whether derivatives are allowed
+            registration_metadata: Optional dict containing full metadata structure
             recipient: Optional recipient address (defaults to sender)
         """
         try:
@@ -279,7 +331,7 @@ class StoryService:
                 'terms': {
                     'transferable': True,
                     'royalty_policy': "0xBe54FB168b3c982b7AaE60dB6CF75Bd8447b390E",
-                    'default_minting_fee': 1,
+                    'default_minting_fee': 0,
                     'expiration': 0,
                     'commercial_use': True,
                     'commercial_attribution': False,
@@ -297,7 +349,7 @@ class StoryService:
                 },
                 'licensing_config': {
                     'is_set': True,
-                    'minting_fee': 1,
+                    'minting_fee': 0,
                     'hook_data': "",
                     'licensing_hook': "0x0000000000000000000000000000000000000000",
                     'commercial_rev_share': commercial_rev_share,
@@ -307,15 +359,14 @@ class StoryService:
                 }
             }]
 
-            # Create metadata structure
-            ip_metadata = {
+            # Use provided registration_metadata or create default structure
+            ip_metadata = registration_metadata if registration_metadata else {
                 "ipMetadataURI": "",
                 "ipMetadataHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-                "nftMetadataURI": nft_metadata_uri,
+                "nftMetadataURI": "",
                 "nftMetadataHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
             }
 
-            # Call SDK function with our working structure
             response = self.client.IPAsset.mintAndRegisterIpAssetWithPilTerms(
                 spg_nft_contract=spg_nft_contract,
                 terms=terms,
@@ -333,7 +384,7 @@ class StoryService:
 
         except Exception as e:
             print(f"Error in mint_and_register_ip_with_terms: {str(e)}")
-            raise 
+            raise
 
     # def register_pil_terms(
     #     self,

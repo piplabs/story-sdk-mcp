@@ -3,6 +3,7 @@ from src.services.story_service import StoryService
 import os
 from dotenv import load_dotenv
 from typing import Union
+import json
 
 # Load environment variables
 load_dotenv(override=True)
@@ -20,7 +21,7 @@ story_service = StoryService(rpc_url=rpc_url, private_key=private_key)
 # Initialize MCP
 mcp = FastMCP("Story Protocol Server")
 
-SPG_NFT_CONTRACT = os.getenv('SPG_NFT_CONTRACT', '0x58E2c909D557Cd23EF90D14f8fd21667A5Ae7a93')  # Default value
+SPG_NFT_CONTRACT = os.getenv('SPG_NFT_CONTRACT', '0x61DDC190616674315641f74C17146D002A1448F6')  # Default value
 
 # Only register IPFS-related tools if IPFS is enabled
 if story_service.ipfs_enabled:
@@ -42,38 +43,40 @@ if story_service.ipfs_enabled:
             return f"Error uploading image to IPFS: {str(e)}"
 
     @mcp.tool()
-    def create_nft_metadata(
+    def create_ip_metadata(
         image_uri: str,
         name: str,
         description: str,
         attributes: list = None
     ) -> str:
         """
-        Create and upload NFT metadata to IPFS.
+        Create and upload both NFT and IP metadata to IPFS.
         
         Args:
             image_uri: IPFS URI of the uploaded image
-            name: Name of the NFT
-            description: Description of the NFT
+            name: Name of the NFT/IP
+            description: Description of the NFT/IP
             attributes: Optional list of attribute dictionaries
         
         Returns:
-            str: Result message with metadata details and IPFS URI
+            str: Result message with metadata details and IPFS URIs
         """
         try:
-            result = story_service.create_nft_metadata(
+            result = story_service.create_ip_metadata(
                 image_uri=image_uri,
                 name=name,
                 description=description,
                 attributes=attributes
             )
             return (
-                f"Successfully created and uploaded NFT metadata:\n"
-                f"Metadata URI: {result['metadata_uri']}\n"
-                f"Metadata: {result['metadata']}"
+                f"Successfully created and uploaded metadata:\n"
+                f"NFT Metadata URI: {result['nft_metadata_uri']}\n"
+                f"IP Metadata URI: {result['ip_metadata_uri']}\n"
+                f"Registration metadata for minting:\n"
+                f"{json.dumps(result['registration_metadata'], indent=2)}"
             )
         except Exception as e:
-            return f"Error creating NFT metadata: {str(e)}"
+            return f"Error creating metadata: {str(e)}"
 
 @mcp.tool()
 def get_license_terms(license_terms_id: int) -> str:
@@ -92,35 +95,14 @@ def mint_license_tokens(
     max_minting_fee: int = None,
     max_revenue_share: int = None
 ) -> str:
-    """
-    Mint license tokens for a specific IP and license terms.
-    
-    Args:
-        licensor_ip_id: The IP ID to mint licenses for
-        license_terms_id: The license terms ID to use
-        receiver: Optional address to receive tokens (defaults to caller)
-        max_minting_fee: Optional maximum minting fee
-        max_revenue_share: Optional maximum revenue share percentage (0-100,000,000)
-    """
     try:
-        # Build kwargs dict with only provided parameters
-        kwargs = {
-            'licensor_ip_id': licensor_ip_id,
-            'license_terms_id': license_terms_id,
-            'amount': 1  # Hardcoded amount to 1
-        }
-        
-        if receiver is not None:
-            kwargs['receiver'] = receiver
-        if max_minting_fee is not None:
-            kwargs['max_minting_fee'] = max_minting_fee
-        if max_revenue_share is not None:
-            kwargs['max_revenue_share'] = max_revenue_share
-
-        # Use the SPG NFT contract address from the environment variable
-        kwargs['license_template'] = SPG_NFT_CONTRACT
-
-        response = story_service.mint_license_tokens(**kwargs)
+        response = story_service.mint_license_tokens(
+            licensor_ip_id=licensor_ip_id,
+            license_terms_id=license_terms_id,
+            receiver=receiver,
+            max_minting_fee=max_minting_fee,
+            max_revenue_share=max_revenue_share
+        )
         
         return (
             f"Successfully minted license tokens:\n"
@@ -128,7 +110,6 @@ def mint_license_tokens(
             f"License Token IDs: {response['licenseTokenIds']}"
         )
     except ValueError as e:
-        # Return specific validation errors
         return f"Validation error: {str(e)}"
     except Exception as e:
         return f"Error minting license tokens: {str(e)}"
@@ -150,21 +131,21 @@ def send_ip(to_address: str, amount: float) -> str:
 
 @mcp.tool()
 def mint_and_register_ip_with_terms(
-    spg_nft_contract: str,
-    nft_metadata_uri: str,
     commercial_rev_share: int,
     derivatives_allowed: bool,
-    recipient: str = None
+    registration_metadata: dict = None,
+    recipient: str = None,
+    spg_nft_contract: str = None  # Make this optional
 ) -> str:
     """
     Mint an NFT, register it as an IP Asset, and attach PIL terms.
 
     Args:
-        spg_nft_contract: Address of the SPG NFT contract
-        nft_metadata_uri: URI of the NFT metadata on IPFS
         commercial_rev_share: Percentage of revenue share (0-100)
         derivatives_allowed: Whether derivatives are allowed
+        registration_metadata: Dict containing metadata URIs and hashes from create_ip_metadata
         recipient: Optional recipient address (defaults to sender)
+        spg_nft_contract: Optional SPG NFT contract address (defaults to env variable)
 
     Returns:
         str: Result message with transaction details
@@ -174,12 +155,14 @@ def mint_and_register_ip_with_terms(
         if not (0 <= commercial_rev_share <= 100):
             raise ValueError("commercial_rev_share must be between 0 and 100")
 
-        # Call service with simplified parameters
+        # Use default SPG_NFT_CONTRACT if not provided
+        contract_address = spg_nft_contract or SPG_NFT_CONTRACT
+
         response = story_service.mint_and_register_ip_with_terms(
-            spg_nft_contract=spg_nft_contract,
-            nft_metadata_uri=nft_metadata_uri,
+            spg_nft_contract=contract_address,
             commercial_rev_share=commercial_rev_share,
             derivatives_allowed=derivatives_allowed,
+            registration_metadata=registration_metadata,
             recipient=recipient
         )
 

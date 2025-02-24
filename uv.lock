@@ -147,6 +147,28 @@ wheels = [
 ]
 
 [[package]]
+name = "base58"
+version = "2.1.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/7f/45/8ae61209bb9015f516102fa559a2914178da1d5868428bd86a1b4421141d/base58-2.1.1.tar.gz", hash = "sha256:c5d0cb3f5b6e81e8e35da5754388ddcc6d0d14b6c6a132cb93d69ed580a7278c", size = 6528 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4a/45/ec96b29162a402fc4c1c5512d114d7b3787b9d1c2ec241d9568b4816ee23/base58-2.1.1-py3-none-any.whl", hash = "sha256:11a36f4d3ce51dfc1043f3218591ac4eb1ceb172919cebe05b52a5bcc8d245c2", size = 5621 },
+]
+
+[[package]]
+name = "bases"
+version = "0.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions" },
+    { name = "typing-validation" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/de/8d/105bca352e2fc5f1ee07f425ec296aa680525aac7f197ef135ea057902ac/bases-0.3.0.tar.gz", hash = "sha256:70f04a4a45d63245787f9e89095ca11042685b6b64b542ad916575ba3ccd1570", size = 789978 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b4/15/7bcf28a3f971e1b0523fab46ae3ca935a589249544187558e5a8e70af393/bases-0.3.0-py3-none-any.whl", hash = "sha256:a2fef3366f3e522ff473d2e95c21523fe8e44251038d5c6150c01481585ebf5b", size = 36053 },
+]
+
+[[package]]
 name = "bitarray"
 version = "3.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -758,6 +780,14 @@ wheels = [
 ]
 
 [[package]]
+name = "morphys"
+version = "1.0"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f9/4f/cb781d0ac5d079adabc77dc4f0bc99fc81c390029bd33c6e70552139e762/morphys-1.0-py2.py3-none-any.whl", hash = "sha256:76d6dbaa4d65f597e59d332c81da786d83e4669387b9b2a750cfec74e7beec20", size = 5618 },
+]
+
+[[package]]
 name = "multidict"
 version = "6.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -827,6 +857,33 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/38/e0/4f5855037a72cd8a7a2f60a3952d9aa45feedb37ae7831642102604e8a37/multidict-6.1.0-cp313-cp313-win32.whl", hash = "sha256:3a37ffb35399029b45c6cc33640a92bef403c9fd388acce75cdc88f58bd19a81", size = 26426 },
     { url = "https://files.pythonhosted.org/packages/7e/a5/17ee3a4db1e310b7405f5d25834460073a8ccd86198ce044dfaf69eac073/multidict-6.1.0-cp313-cp313-win_amd64.whl", hash = "sha256:e9aa71e15d9d9beaad2c6b9319edcdc0a49a43ef5c0a4c8265ca9ee7d6c67774", size = 28531 },
     { url = "https://files.pythonhosted.org/packages/99/b7/b9e70fde2c0f0c9af4cc5277782a89b66d35948ea3369ec9f598358c3ac5/multidict-6.1.0-py3-none-any.whl", hash = "sha256:48e171e52d1c4d33888e529b999e5900356b9ae588c2f09a52dcefb158b27506", size = 10051 },
+]
+
+[[package]]
+name = "multiformats"
+version = "0.3.1.post4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "bases" },
+    { name = "multiformats-config" },
+    { name = "typing-extensions" },
+    { name = "typing-validation" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b2/41/2efc6e99fa2ed9f1a47fbfed5d124215e35db0a849585db72eeb1490de0e/multiformats-0.3.1.post4.tar.gz", hash = "sha256:d00074fdbc7d603c2084b4c38fa17bbc28173cf2750f51f46fbbc5c4d5605fbb", size = 826017 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fa/02/0eff41b136c6723441d052c61c9dae36b86b3ae68ec064813445580222a6/multiformats-0.3.1.post4-py3-none-any.whl", hash = "sha256:5b1d61bd8275c9e817bdbee38dbd501b26629011962ee3c86c46e7ccd0b14129", size = 57148 },
+]
+
+[[package]]
+name = "multiformats-config"
+version = "0.3.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "multiformats" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c6/09/ccb6867c2d6c6de98d1d285d8a3a2103fdf452c2fef5019bb3d8ac9938d9/multiformats-config-0.3.1.tar.gz", hash = "sha256:7eaa80ef5d9c5ee9b86612d21f93a087c4a655cbcb68960457e61adbc62b47a7", size = 28345 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f3/9b/c21a9c1d5ea4847989f1eb00e3147e38e79aaea7c4b4d1cbd4f1afae9740/multiformats_config-0.3.1-py3-none-any.whl", hash = "sha256:dec4c9d42ed0d9305889b67440f72e8e8d74b82b80abd7219667764b5b0a8e1d", size = 17153 },
 ]
 
 [[package]]
@@ -959,6 +1016,64 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/42/78/9432542a35d944abeca9e02927a0de38cd7a298466d8ffa171536e2381c3/propcache-0.3.0-cp313-cp313t-win32.whl", hash = "sha256:0c3e893c4464ebd751b44ae76c12c5f5c1e4f6cbd6fbf67e3783cd93ad221863", size = 42252 },
     { url = "https://files.pythonhosted.org/packages/6f/45/960365f4f8978f48ebb56b1127adf33a49f2e69ecd46ac1f46d6cf78a79d/propcache-0.3.0-cp313-cp313t-win_amd64.whl", hash = "sha256:75e872573220d1ee2305b35c9813626e620768248425f58798413e9c39741f46", size = 46425 },
     { url = "https://files.pythonhosted.org/packages/b5/35/6c4c6fc8774a9e3629cd750dc24a7a4fb090a25ccd5c3246d127b70f9e22/propcache-0.3.0-py3-none-any.whl", hash = "sha256:67dda3c7325691c2081510e92c561f465ba61b975f481735aefdfc845d2cd043", size = 12101 },
+]
+
+[[package]]
+name = "py-multibase"
+version = "1.0.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "morphys" },
+    { name = "python-baseconv" },
+    { name = "six" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/58/9c/8b1b78e900f5e94b1d48359efffcaa1ba9ddd0448e6aac94d4d27dbd67b7/py-multibase-1.0.3.tar.gz", hash = "sha256:d28a20efcbb61eec28f55827a0bf329c7cea80fffd933aecaea6ae8431267fe4", size = 23376 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/78/21/7b6b3bba9c702daf6991f2bd89c92db6fa899a444fab24ba5b99f1f486f7/py_multibase-1.0.3-py2.py3-none-any.whl", hash = "sha256:2677c1fafcc0ae15ddb9c7f444c5becc2530b3889124fd4fa2959ddfefb8c15b", size = 6378 },
+]
+
+[[package]]
+name = "py-multicodec"
+version = "0.2.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "morphys" },
+    { name = "six" },
+    { name = "varint" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/77/33/ff388b34002239c367f6544678667efff079d29aabf7e3c4a3ec392310be/py-multicodec-0.2.1.tar.gz", hash = "sha256:83021ffe8c0e272d19b5b86bc5b39efa67c8e9f4735ce6cafdbc1ace767ec647", size = 22542 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6c/96/3ffb721c2fe100f6613a0d2db3b4b3229c6de52b279fd41aab0e84ea0725/py_multicodec-0.2.1-py2.py3-none-any.whl", hash = "sha256:55b6bb53088a63e56c434cb11b29795e8805652bac43d50a8f2a9bcf5ca84e1f", size = 8536 },
+]
+
+[[package]]
+name = "py-multiformats-cid"
+version = "0.4.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "base58" },
+    { name = "morphys" },
+    { name = "py-multibase" },
+    { name = "py-multicodec" },
+    { name = "py-multihash" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1a/27/aa30afa228aedb4789e500700f81798a03322d11f377af4e9e282b1fc6f6/py_multiformats_cid-0.4.4-py2.py3-none-any.whl", hash = "sha256:83f6c3109ed56664799c7367703a68d1724b1e9bd79b45c8935c77660560d1dd", size = 7329 },
+]
+
+[[package]]
+name = "py-multihash"
+version = "2.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "base58" },
+    { name = "morphys" },
+    { name = "six" },
+    { name = "varint" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/da/d8/16bf2e958a80a85b2c905c03e412c20ba7ed5911946e2b7050f3b8fa612b/py-multihash-2.0.1.tar.gz", hash = "sha256:b97511a87b7091f8b37a3d74ccb4a898e133529e7c5e431f9a27f78248a75e60", size = 22677 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6d/44/7c4ac9a8f5a4713b52eb3e992da95375e9bc31d79c0d3d6f6cad95358ba5/py_multihash-2.0.1-py2.py3-none-any.whl", hash = "sha256:c388728b3456d35cd6668b42a3d9ba32dd640493c8e93b992979668dcf2c0676", size = 7619 },
 ]
 
 [[package]]
@@ -1112,6 +1227,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/05/35/30e0d83068951d90a
 wheels = [
     { url = "https://files.pythonhosted.org/packages/11/92/76a1c94d3afee238333bc0a42b82935dd8f9cf8ce9e336ff87ee14d9e1cf/pytest-8.3.4-py3-none-any.whl", hash = "sha256:50e16d954148559c9a74109af1eaf0c945ba2d8f30f0a3d3335edde19788b6f6", size = 343083 },
 ]
+
+[[package]]
+name = "python-baseconv"
+version = "1.2.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/33/d0/9297d7d8dd74767b4d5560d834b30b2fff17d39987c23ed8656f476e0d9b/python-baseconv-1.2.2.tar.gz", hash = "sha256:0539f8bd0464013b05ad62e0a1673f0ac9086c76b43ebf9f833053527cd9931b", size = 4929 }
 
 [[package]]
 name = "python-dotenv"
@@ -1295,6 +1416,15 @@ wheels = [
 ]
 
 [[package]]
+name = "six"
+version = "1.17.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/94/e7/b2c673351809dca68a0e064b6af791aa332cf192da575fd474ed7d6f16a2/six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81", size = 34031 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274", size = 11050 },
+]
+
+[[package]]
 name = "sniffio"
 version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1343,9 +1473,13 @@ name = "story-sdk-mcp"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "aiohttp" },
     { name = "loguru" },
     { name = "mcp", extra = ["cli"] },
+    { name = "multiformats" },
     { name = "pinata" },
+    { name = "py-multicodec" },
+    { name = "py-multiformats-cid" },
     { name = "python-dotenv" },
     { name = "ruff" },
     { name = "story-protocol-python-sdk" },
@@ -1354,9 +1488,13 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "aiohttp", specifier = ">=3.11.12" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "mcp", extras = ["cli"] },
+    { name = "multiformats", specifier = ">=0.3.1.post4" },
     { name = "pinata", specifier = ">=0.0.1" },
+    { name = "py-multicodec", specifier = ">=0.2.1" },
+    { name = "py-multiformats-cid", specifier = ">=0.4.4" },
     { name = "python-dotenv" },
     { name = "ruff", specifier = ">=0.9.7" },
     { name = "story-protocol-python-sdk", git = "https://github.com/storyprotocol/python-sdk.git" },
@@ -1448,6 +1586,18 @@ wheels = [
 ]
 
 [[package]]
+name = "typing-validation"
+version = "1.2.11.post4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d7/60/d5adede183c24549e8fdc941ec152efea42a4f580c159b702aabbf72b7d6/typing_validation-1.2.11.post4.tar.gz", hash = "sha256:7aed04ecfbda07e63b7266f90e5d096f96344f7facfe04bb081b21e4a9781670", size = 774691 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7d/72/63e3a07107232462dd585e91cdd8032669578b026bca44d76f307bb8c6c7/typing_validation-1.2.11.post4-py3-none-any.whl", hash = "sha256:73dd504ddebf5210e80d5f65ba9b30efbd0fa42f266728fda7c4f0ba335c699c", size = 20748 },
+]
+
+[[package]]
 name = "urllib3"
 version = "2.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1469,6 +1619,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/4b/4d/938bd85e5bf2edeec
 wheels = [
     { url = "https://files.pythonhosted.org/packages/61/14/33a3a1352cfa71812a3a21e8c9bfb83f60b0011f5e36f2b1399d51928209/uvicorn-0.34.0-py3-none-any.whl", hash = "sha256:023dc038422502fa28a09c7a30bf2b6991512da7dcdb8fd35fe57cfc154126f4", size = 62315 },
 ]
+
+[[package]]
+name = "varint"
+version = "1.0.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a8/fe/1ea0ba0896dfa47186692655b86db3214c4b7c9e0e76c7b1dc257d101ab1/varint-1.0.2.tar.gz", hash = "sha256:a6ecc02377ac5ee9d65a6a8ad45c9ff1dac8ccee19400a5950fb51d594214ca5", size = 1886 }
 
 [[package]]
 name = "web3"

@@ -11,4 +11,8 @@ dependencies = [
     "ruff>=0.9.7",
     "pinata>=0.0.1",
     "loguru>=0.7.3",
+    "multiformats>=0.3.1.post4",
+    "aiohttp>=3.11.12",
+    "py-multicodec>=0.2.1",
+    "py-multiformats-cid>=0.4.4",
 ]
