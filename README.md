@@ -1,6 +1,6 @@
-# Story Protocol SDK MCP Server
+# Story SDK MCP Server
 
-This server provides MCP (Model Control Protocol) tools for interacting with Story Protocol's smart contracts through their Python SDK.
+This server provides MCP (Model Context Protocol) tools for interacting with Story's [Python SDK](https://github.com/storyprotocol/python-sdk/).
 
 ## Features
 
@@ -66,4 +66,4 @@ You can use the following parameters to test the tool:
 
 ## Usage with MCP
 
-You can use these tools with any MCP-compatible client. The tools are exposed through the MCP protocol and can be accessed using standard MCP clients.
+You can use these tools with any MCP-compatible client. The tools are exposed through the MCP protocol and can be accessed using any AI framework of your choosing.
