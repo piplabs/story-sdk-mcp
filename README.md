@@ -8,8 +8,8 @@ This server provides MCP (Model Context Protocol) tools for interacting with Sto
 - Mint and register IP Asset with PIL Terms
 - Mint license tokens
 - Send $IP to a wallet
-- [External] upload image to ipfs
-- [External] upload ip and nft metadata
+- Upload image to ipfs via Pinata [External] 
+- Upload ip and nft metadata via Pinata [External] 
 
 ## Setup
 
