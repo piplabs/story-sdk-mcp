@@ -17,7 +17,10 @@ class StoryService:
         # Initialize Pinata JWT
         self.pinata_jwt = os.getenv('PINATA_JWT')
         if not self.pinata_jwt:
-            raise ValueError("PINATA_JWT environment variable is required")
+            self.ipfs_enabled = False
+            print("Warning: PINATA_JWT environment variable not found. IPFS functions will be disabled.")
+        else:
+            self.ipfs_enabled = True
 
     def get_license_terms(self, license_terms_id: int) -> dict:
         """Get the license terms for a specific ID."""
@@ -170,6 +173,9 @@ class StoryService:
 
     def upload_image_to_ipfs(self, image_data: Union[bytes, str]) -> str:
         """Upload an image to IPFS using Pinata API"""
+        if not self.ipfs_enabled:
+            raise Exception("IPFS functions are disabled. Please provide PINATA_JWT environment variable.")
+        
         try:
             # If image_data is a URL, download it first
             if isinstance(image_data, str) and image_data.startswith('http'):
@@ -214,6 +220,9 @@ class StoryService:
         :param attributes: List of attribute dictionaries
         :return: Metadata dictionary and IPFS URI for the metadata
         """
+        if not self.ipfs_enabled:
+            raise Exception("IPFS functions are disabled. Please provide PINATA_JWT environment variable.")
+
         try:
             metadata = {
                 "name": name,
@@ -222,13 +231,11 @@ class StoryService:
                 "attributes": attributes or []
             }
 
-            # Prepare headers with JWT
             headers = {
                 'Authorization': f'Bearer {self.pinata_jwt}',
                 'Content-Type': 'application/json'
             }
 
-            # Upload JSON to Pinata
             response = requests.post(
                 'https://api.pinata.cloud/pinning/pinJSONToIPFS',
                 json=metadata,

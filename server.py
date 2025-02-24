@@ -22,6 +22,59 @@ mcp = FastMCP("Story Protocol Server")
 
 SPG_NFT_CONTRACT = os.getenv('SPG_NFT_CONTRACT', '0x58E2c909D557Cd23EF90D14f8fd21667A5Ae7a93')  # Default value
 
+# Only register IPFS-related tools if IPFS is enabled
+if story_service.ipfs_enabled:
+    @mcp.tool()
+    def upload_image_to_ipfs(image_data: Union[bytes, str]) -> str:
+        """
+        Upload an image to IPFS using Pinata API.
+        
+        Args:
+            image_data: Either bytes of image data or URL to image
+        
+        Returns:
+            str: IPFS URI of the uploaded image
+        """
+        try:
+            ipfs_uri = story_service.upload_image_to_ipfs(image_data)
+            return f"Successfully uploaded image to IPFS: {ipfs_uri}"
+        except Exception as e:
+            return f"Error uploading image to IPFS: {str(e)}"
+
+    @mcp.tool()
+    def create_nft_metadata(
+        image_uri: str,
+        name: str,
+        description: str,
+        attributes: list = None
+    ) -> str:
+        """
+        Create and upload NFT metadata to IPFS.
+        
+        Args:
+            image_uri: IPFS URI of the uploaded image
+            name: Name of the NFT
+            description: Description of the NFT
+            attributes: Optional list of attribute dictionaries
+        
+        Returns:
+            str: Result message with metadata details and IPFS URI
+        """
+        try:
+            result = story_service.create_nft_metadata(
+                image_uri=image_uri,
+                name=name,
+                description=description,
+                attributes=attributes
+            )
+            return (
+                f"Successfully created and uploaded NFT metadata:\n"
+                f"Metadata URI: {result['metadata_uri']}\n"
+                f"Metadata: {result['metadata']}"
+            )
+        except Exception as e:
+            return f"Error creating NFT metadata: {str(e)}"
+
 @mcp.tool()
 def get_license_terms(license_terms_id: int) -> str:
     """Get the license terms for a specific ID."""
@@ -140,57 +193,6 @@ def mint_and_register_ip_with_terms(
     except Exception as e:
         return f"Error minting and registering IP with terms: {str(e)}"
 
-@mcp.tool()
-def upload_image_to_ipfs(image_data: Union[bytes, str]) -> str:
-    """
-    Upload an image to IPFS using Pinata API.
-    
-    Args:
-        image_data: Either bytes of image data or URL to image
-    
-    Returns:
-        str: IPFS URI of the uploaded image
-    """
-    try:
-        ipfs_uri = story_service.upload_image_to_ipfs(image_data)
-        return f"Successfully uploaded image to IPFS: {ipfs_uri}"
-    except Exception as e:
-        return f"Error uploading image to IPFS: {str(e)}"
-
-@mcp.tool()
-def create_nft_metadata(
-    image_uri: str,
-    name: str,
-    description: str,
-    attributes: list = None
-) -> str:
-    """
-    Create and upload NFT metadata to IPFS.
-    
-    Args:
-        image_uri: IPFS URI of the uploaded image
-        name: Name of the NFT
-        description: Description of the NFT
-        attributes: Optional list of attribute dictionaries
-    
-    Returns:
-        str: Result message with metadata details and IPFS URI
-    """
-    try:
-        result = story_service.create_nft_metadata(
-            image_uri=image_uri,
-            name=name,
-            description=description,
-            attributes=attributes
-        )
-        return (
-            f"Successfully created and uploaded NFT metadata:\n"
-            f"Metadata URI: {result['metadata_uri']}\n"
-            f"Metadata: {result['metadata']}"
-        )
-    except Exception as e:
-        return f"Error creating NFT metadata: {str(e)}"
-    
 # @mcp.tool()
 # def register_ip_asset(nft_contract: str, token_id: int, metadata: dict) -> str:
 #     """
