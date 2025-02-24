@@ -26,11 +26,12 @@ uv sync
 cp .env.example .env
 ```
 
-Required environment variables:
+Environment variables:
 
 - `WALLET_PRIVATE_KEY`: Your Ethereum wallet private key
 - `RPC_PROVIDER_URL`: Your RPC provider URL
 - `SPG_NFT_CONTRACT`: The address of the SPG NFT contract
+- `PINATA_JWT`: JWT for uploading images/metadata to pinata [optional]
 
 3. Use inspector to test the server:
 
