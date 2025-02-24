@@ -5,9 +5,11 @@ This server provides MCP (Model Control Protocol) tools for interacting with Sto
 ## Features
 
 - Get license terms
-- Register PIL terms with custom parameters
-- Register non-commercial social remixing PIL licenses
+- Mint and register IP Asset with PIL Terms
 - Mint license tokens
+- Send $IP to a wallet
+- [External] upload image to ipfs
+- [External] upload ip and nft metadata
 
 ## Setup
 
@@ -42,7 +44,7 @@ uv run mcp dev server.py
 2. `mint_license_tokens`: Mint license tokens for a specific IP and license terms
 3. `send_ip`: Send IP tokens to a specified address using native token transfer
 4. `upload_image_to_ipfs`: Upload an image to IPFS and return the URI
-5. `create_nft_metadata`: Create NFT metadata for a specific image URI
+5. `create_ip_metadata`: Create NFT metadata for a specific image URI
 6. `mint_and_register_ip_with_terms`: Mint and register an IP with terms
 
 ### Example `mint_and_register_ip_with_terms`
