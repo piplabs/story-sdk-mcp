@@ -364,15 +364,12 @@ class StoryService:
                 'spg_nft_contract': spg_nft_contract,
                 'terms': terms,
                 'recipient': recipient if recipient else self.account.address,
-                'ip_metadata': registration_metadata,
                 'allow_duplicates': True
             }
-
-            print("Debug - registration_metadata:", json.dumps(registration_metadata, indent=2))
             
             # Only add ip_metadata if registration_metadata is provided
-            # if registration_metadata:
-            #     kwargs['ip_metadata'] = registration_metadata
+            if registration_metadata:
+                kwargs['ip_metadata'] = registration_metadata
 
             response = self.client.IPAsset.mintAndRegisterIpAssetWithPilTerms(**kwargs)
 
