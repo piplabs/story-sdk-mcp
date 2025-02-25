@@ -8,8 +8,8 @@ This server provides MCP (Model Context Protocol) tools for interacting with Sto
 - Mint and register IP Asset with PIL Terms
 - Mint license tokens
 - Send $IP to a wallet
-- Upload image to ipfs via Pinata [External] 
-- Upload ip and nft metadata via Pinata [External] 
+- Upload image to ipfs via Pinata [External]
+- Upload ip and nft metadata via Pinata [External]
 
 ## Setup
 
@@ -28,10 +28,10 @@ cp .env.example .env
 
 Environment variables:
 
-- `WALLET_PRIVATE_KEY`: Your Ethereum wallet private key
-- `RPC_PROVIDER_URL`: Your RPC provider URL
-- `SPG_NFT_CONTRACT`: The address of the SPG NFT contract
-- `PINATA_JWT`: JWT for uploading images/metadata to pinata [optional]
+- `WALLET_PRIVATE_KEY`: Your EVM wallet private key
+- `RPC_PROVIDER_URL`: Your RPC provider URL. You can use the default one provided.
+- `SPG_NFT_CONTRACT`: The address of the SPG NFT contract. You can use the default one provided.
+- `PINATA_JWT`: [optional] JWT for uploading images/metadata to pinata. You need this to upload metadata to IPFS when registering an IP. You can get this by creating a new app on [pinata](https://pinata.cloud/)
 
 3. Use inspector to test the server:
 
