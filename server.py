@@ -21,7 +21,7 @@ story_service = StoryService(rpc_url=rpc_url, private_key=private_key)
 # Initialize MCP
 mcp = FastMCP("Story Protocol Server")
 
-SPG_NFT_CONTRACT = os.getenv('SPG_NFT_CONTRACT', '0x61DDC190616674315641f74C17146D002A1448F6')  # Default value
+SPG_NFT_CONTRACT = os.getenv('SPG_NFT_CONTRACT')
 
 # Only register IPFS-related tools if IPFS is enabled
 if story_service.ipfs_enabled:
@@ -95,6 +95,16 @@ def mint_license_tokens(
     max_minting_fee: int = None,
     max_revenue_share: int = None
 ) -> str:
+    """
+    Mint license tokens for a given IP and license terms.
+    
+    :param licensor_ip_id: The ID of the licensor's intellectual property
+    :param license_terms_id: The ID of the license terms
+    :param receiver: Optional; the recipient's address for the tokens
+    :param max_minting_fee: Optional; maximum fee for minting
+    :param max_revenue_share: Optional; maximum revenue share percentage
+    :return: Success message with transaction hash and token IDs
+    """
     try:
         response = story_service.mint_license_tokens(
             licensor_ip_id=licensor_ip_id,
