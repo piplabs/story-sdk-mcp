@@ -21,7 +21,7 @@ story_service = StoryService(rpc_url=rpc_url, private_key=private_key)
 # Initialize MCP
 mcp = FastMCP("Story Protocol Server")
 
-SPG_NFT_CONTRACT = os.getenv('SPG_NFT_CONTRACT', '0x61DDC190616674315641f74C17146D002A1448F6')  # Default value
+SPG_NFT_CONTRACT = os.getenv('SPG_NFT_CONTRACT')
 
 # Only register IPFS-related tools if IPFS is enabled
 if story_service.ipfs_enabled:
