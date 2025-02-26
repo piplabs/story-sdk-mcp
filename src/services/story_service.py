@@ -248,7 +248,7 @@ class StoryService:
             )
             if nft_response.status_code != 200:
                 raise Exception(f"Failed to upload NFT metadata: {nft_response.text}")
-            nft_metadata_uri = f"ipfs://{nft_response.json()['IpfsHash']}"
+            nft_metadata_uri = f"https://ipfs.io/ipfs/{nft_response.json()['IpfsHash']}"
             
             # Upload IP metadata to IPFS
             ip_response = requests.post(
@@ -261,7 +261,7 @@ class StoryService:
             )
             if ip_response.status_code != 200:
                 raise Exception(f"Failed to upload IP metadata: {ip_response.text}")
-            ip_metadata_uri = f"ipfs://{ip_response.json()['IpfsHash']}"
+            ip_metadata_uri = f"https://ipfs.io/ipfs/{ip_response.json()['IpfsHash']}"
 
             # Generate hashes of the metadata JSONs
             nft_metadata_hash = self.web3.keccak(text=json.dumps(nft_metadata, sort_keys=True))
