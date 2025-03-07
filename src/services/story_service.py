@@ -1,23 +1,59 @@
 from web3 import Web3
 from story_protocol_python_sdk.story_client import StoryClient
+from story_protocol_python_sdk.resources.NFTClient import NFTClient
 import requests
 import os
 from typing import Union
 import time
 import json
+from src.utils.address_resolver import create_address_resolver
+from src.utils.contract_addresses import get_contracts_by_chain_id, get_contracts_by_network_name, CHAIN_IDS
 
 class StoryService:
-    def __init__(self, rpc_url: str, private_key: str):
-        """Initialize Story Protocol service with RPC URL and private key."""
+    def __init__(self, rpc_url: str, private_key: str, network: str = None):
+        """
+        Initialize Story Protocol service with RPC URL and private key.
+        
+        Args:
+            rpc_url: RPC URL for the blockchain
+            private_key: Private key for signing transactions
+            network: Optional network name ('aeneid' or 'mainnet') to override auto-detection
+        """
         self.web3 = Web3(Web3.HTTPProvider(rpc_url))
         if not self.web3.is_connected():
             raise Exception("Failed to connect to the Web3 provider")
 
         self.account = self.web3.eth.account.from_key(private_key)
-        self.client = StoryClient(web3=self.web3, account=self.account, chain_id=1315)
         
-        # Add default license template
-        self.LICENSE_TEMPLATE = "0x2E896b0b2Fdb7457499B56AAaA4AE55BCB4Cd316"
+        # Detect chain ID
+        self.chain_id = self.web3.eth.chain_id
+        
+        # If network is explicitly provided, use it instead of auto-detection
+        if network:
+            if network.lower() not in ["aeneid", "mainnet"]:
+                raise ValueError(f"Unsupported network: {network}. Must be 'aeneid' or 'mainnet'")
+            self.network = network.lower()
+            self.chain_id = CHAIN_IDS[self.network]
+        else:
+            # Auto-detect network based on chain ID
+            if self.chain_id == CHAIN_IDS["aeneid"]:
+                self.network = "aeneid"
+            elif self.chain_id == CHAIN_IDS["mainnet"]:
+                self.network = "mainnet"
+            else:
+                raise ValueError(f"Unsupported chain ID: {self.chain_id}. Must be {CHAIN_IDS['aeneid']} (Aeneid) or {CHAIN_IDS['mainnet']} (Mainnet)")
+        
+        # Initialize Story client with detected chain ID
+        self.client = StoryClient(web3=self.web3, account=self.account, chain_id=self.chain_id)
+        
+        # Manually initialize the NFTClient
+        self.nft_client = NFTClient(web3=self.web3, account=self.account, chain_id=self.chain_id)
+        
+        # Get contract addresses for the detected network
+        self.contracts = get_contracts_by_chain_id(self.chain_id)
+        
+        # Set license template from contracts
+        self.LICENSE_TEMPLATE = self.contracts["PILicenseTemplate"]
         
         # Initialize Pinata JWT
         self.pinata_jwt = os.getenv('PINATA_JWT')
@@ -26,6 +62,9 @@ class StoryService:
             print("Warning: PINATA_JWT environment variable not found. IPFS functions will be disabled.")
         else:
             self.ipfs_enabled = True
+            
+        # Initialize address resolver
+        self.address_resolver = create_address_resolver(self.web3, chain_id=CHAIN_IDS["mainnet"])  # Story Protocol chain ID for .ip domains
 
     def get_license_terms(self, license_terms_id: int) -> dict:
         """Get the license terms for a specific ID."""
@@ -68,19 +107,22 @@ class StoryService:
         Args:
             licensor_ip_id: The IP ID to mint licenses for
             license_terms_id: The license terms ID to use
-            receiver: Address to receive the license tokens (defaults to caller)
+            receiver: Address or domain name to receive the license tokens (defaults to caller)
             amount: Number of license tokens to mint (defaults to 1)
             max_minting_fee: Optional maximum minting fee
             max_revenue_share: Optional maximum revenue share percentage (0-100,000,000)
         """
         try:
+            # Resolve receiver address if provided
+            resolved_receiver = self.address_resolver.resolve_address(receiver) if receiver else self.account.address
+            
             # Build kwargs dict with only provided parameters
             kwargs = {
                 'licensor_ip_id': licensor_ip_id,
                 'license_template': self.LICENSE_TEMPLATE,  # Use default template
                 'license_terms_id': license_terms_id,
                 'amount': amount,
-                'receiver': receiver if receiver else self.account.address
+                'receiver': resolved_receiver
             }
             
             if max_minting_fee is not None:
@@ -99,11 +141,14 @@ class StoryService:
         """
         Send IP tokens to a specified address using native token transfer.
         
-        :param to_address: Recipient's address
+        :param to_address: Recipient's address or domain name
         :param amount: Amount of IP tokens to send (1 IP = 1 Ether)
         :return: Transaction details
         """
         try:
+            # Resolve the recipient address
+            resolved_address = self.address_resolver.resolve_address(to_address)
+            
             # Convert amount to Wei (1 IP = 1 Ether)
             value_in_wei = self.web3.to_wei(amount, 'ether')
 
@@ -121,7 +166,7 @@ class StoryService:
             # Estimate gas limit for this transaction
             try:
                 gas_estimate = self.web3.eth.estimate_gas({
-                    'to': self.web3.to_checksum_address(to_address),
+                    'to': resolved_address,
                     'from': self.account.address,
                     'value': value_in_wei
                 })
@@ -131,7 +176,7 @@ class StoryService:
 
             # Build the transaction with dynamic gas settings
             transaction = {
-                'to': self.web3.to_checksum_address(to_address),
+                'to': resolved_address,
                 'value': value_in_wei,
                 'gas': gas_estimate,
                 'gasPrice': gas_price,
@@ -152,7 +197,6 @@ class StoryService:
             }
         except Exception as e:
             print(f"Error details: {str(e)}")
-            print(f"Debug: Transaction details: {transaction}")
             raise
 
     def upload_image_to_ipfs(self, image_data: Union[bytes, str]) -> str:
@@ -248,7 +292,7 @@ class StoryService:
             )
             if nft_response.status_code != 200:
                 raise Exception(f"Failed to upload NFT metadata: {nft_response.text}")
-            nft_metadata_uri = f"https://ipfs.io/ipfs/{nft_response.json()['IpfsHash']}"
+            nft_metadata_uri = f"ipfs://{nft_response.json()['IpfsHash']}"
             
             # Upload IP metadata to IPFS
             ip_response = requests.post(
@@ -261,7 +305,7 @@ class StoryService:
             )
             if ip_response.status_code != 200:
                 raise Exception(f"Failed to upload IP metadata: {ip_response.text}")
-            ip_metadata_uri = f"https://ipfs.io/ipfs/{ip_response.json()['IpfsHash']}"
+            ip_metadata_uri = f"ipfs://{ip_response.json()['IpfsHash']}"
 
             # Generate hashes of the metadata JSONs
             nft_metadata_hash = self.web3.keccak(text=json.dumps(nft_metadata, sort_keys=True))
@@ -308,29 +352,38 @@ class StoryService:
 
     def mint_and_register_ip_with_terms(
         self,
-        spg_nft_contract: str,
         commercial_rev_share: int,
         derivatives_allowed: bool,
         registration_metadata: dict = None,
-        recipient: str = None
+        recipient: str = None,
+        spg_nft_contract: str = None
     ) -> dict:
         """
         Mint an NFT, register it as an IP Asset, and attach PIL terms.
         
         Args:
-            spg_nft_contract: Address of the SPG NFT contract
-            nft_metadata_uri: URI of the NFT metadata on IPFS
             commercial_rev_share: Percentage of revenue share (0-100)
             derivatives_allowed: Whether derivatives are allowed
             registration_metadata: Optional dict containing full metadata structure
-            recipient: Optional recipient address (defaults to sender)
+            recipient: Optional recipient address or domain name (defaults to sender)
+            spg_nft_contract: Optional SPG NFT contract address (defaults to network-specific default)
         """
         try:
+            # Resolve recipient address if provided
+            resolved_recipient = self.address_resolver.resolve_address(recipient) if recipient else self.account.address
+            
+            # Use default SPG NFT contract if none provided
+            if spg_nft_contract is None:
+                spg_nft_contract = self.contracts["SPG_NFT"]
+            
+            # Use the royalty policy from the contracts dictionary
+            royalty_policy = self.contracts["RoyaltyPolicyLAP"]
+            
             # Create terms matching our working structure
             terms = [{
                 'terms': {
                     'transferable': True,
-                    'royalty_policy': "0xBe54FB168b3c982b7AaE60dB6CF75Bd8447b390E",
+                    'royalty_policy': royalty_policy,
                     'default_minting_fee': 0,
                     'expiration': 0,
                     'commercial_use': commercial_rev_share > 0,
@@ -363,7 +416,7 @@ class StoryService:
             kwargs = {
                 'spg_nft_contract': spg_nft_contract,
                 'terms': terms,
-                'recipient': recipient if recipient else self.account.address,
+                'recipient': resolved_recipient,
                 'allow_duplicates': True
             }
             
@@ -382,6 +435,83 @@ class StoryService:
 
         except Exception as e:
             print(f"Error in mint_and_register_ip_with_terms: {str(e)}")
+            raise
+
+    def create_spg_nft_collection(
+        self, 
+        name: str, 
+        symbol: str, 
+        is_public_minting: bool = True,
+        mint_open: bool = True,
+        mint_fee_recipient: str = None,
+        contract_uri: str = "",
+        base_uri: str = "",
+        max_supply: int = None,
+        mint_fee: int = None,
+        mint_fee_token: str = None,
+        owner: str = None
+    ) -> dict:
+        """
+        Create a new SPG NFT collection that can be used for minting and registering IP assets.
+        
+        Args:
+            name: (REQUIRED) Name of the NFT collection
+            symbol: (REQUIRED) Symbol for the NFT collection
+            is_public_minting: (OPTIONAL, default=True) Whether anyone can mint NFTs from this collection
+            mint_open: (OPTIONAL, default=True) Whether minting is currently enabled
+            mint_fee_recipient: (OPTIONAL) Address to receive minting fees (defaults to zero address)
+            contract_uri: (OPTIONAL) URI for the collection metadata (ERC-7572 standard)
+            base_uri: (OPTIONAL) Base URI for the collection. If not empty, tokenURI will be either 
+                     baseURI + token ID or baseURI + nftMetadataURI
+            max_supply: (OPTIONAL) Maximum supply of the collection (defaults to unlimited)
+            mint_fee: (OPTIONAL) Cost to mint a token (defaults to 0)
+            mint_fee_token: (OPTIONAL) Token address used for minting fees (defaults to native token)
+            owner: (OPTIONAL) Owner address of the collection (defaults to sender)
+        
+        Returns:
+            dict: Information about the created collection including:
+                - tx_hash: Transaction hash
+                - spg_nft_contract: Address of the created collection
+                
+        Note:
+            The underlying SDK supports additional transaction options (tx_options) 
+            which are intentionally not exposed here as they're too low-level for agent interfaces.
+        """
+        try:
+            # Default mint_fee_recipient to zero address if not provided
+            if mint_fee_recipient is None:
+                mint_fee_recipient = "0x0000000000000000000000000000000000000000"
+            else:
+                # Resolve the address if it's a domain name
+                mint_fee_recipient = self.address_resolver.resolve_address(mint_fee_recipient)
+            
+            # Resolve owner address if provided
+            if owner:
+                owner = self.address_resolver.resolve_address(owner)
+            
+            # Use the manually initialized NFTClient instead of client.NFT
+            response = self.nft_client.createNFTCollection(
+                name=name,
+                symbol=symbol,
+                is_public_minting=is_public_minting,
+                mint_open=mint_open,
+                mint_fee_recipient=mint_fee_recipient,
+                contract_uri=contract_uri,
+                base_uri=base_uri,
+                max_supply=max_supply,
+                mint_fee=mint_fee,
+                mint_fee_token=mint_fee_token,
+                owner=owner,
+                tx_options=None  # Always use default transaction options
+            )
+            
+            return {
+                'tx_hash': response.get('txHash'),
+                'spg_nft_contract': response.get('nftContract')
+            }
+        
+        except Exception as e:
+            print(f"Error creating SPG NFT collection: {str(e)}")
             raise
 
     # def register_pil_terms(

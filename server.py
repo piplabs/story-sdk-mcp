@@ -21,8 +21,6 @@ story_service = StoryService(rpc_url=rpc_url, private_key=private_key)
 # Initialize MCP
 mcp = FastMCP("Story Protocol Server")
 
-SPG_NFT_CONTRACT = os.getenv('SPG_NFT_CONTRACT')
-
 # Only register IPFS-related tools if IPFS is enabled
 if story_service.ipfs_enabled:
     @mcp.tool()
@@ -155,7 +153,7 @@ def mint_and_register_ip_with_terms(
         derivatives_allowed: Whether derivatives are allowed
         registration_metadata: Dict containing metadata URIs and hashes from create_ip_metadata
         recipient: Optional recipient address (defaults to sender)
-        spg_nft_contract: Optional SPG NFT contract address (defaults to env variable)
+        spg_nft_contract: Optional SPG NFT contract address (defaults to network-specific default)
 
     Returns:
         str: Result message with transaction details
@@ -165,16 +163,17 @@ def mint_and_register_ip_with_terms(
         if not (0 <= commercial_rev_share <= 100):
             raise ValueError("commercial_rev_share must be between 0 and 100")
 
-        # Use default SPG_NFT_CONTRACT if not provided
-        contract_address = spg_nft_contract or SPG_NFT_CONTRACT
-
+        # No need to use SPG_NFT_CONTRACT from env, as StoryService now has defaults
         response = story_service.mint_and_register_ip_with_terms(
-            spg_nft_contract=contract_address,
             commercial_rev_share=commercial_rev_share,
             derivatives_allowed=derivatives_allowed,
             registration_metadata=registration_metadata,
-            recipient=recipient
+            recipient=recipient,
+            spg_nft_contract=spg_nft_contract
         )
+
+        # Determine which explorer URL to use based on network
+        explorer_url = "https://explorer.story.foundation" if story_service.network == "mainnet" else "https://aeneid.explorer.story.foundation"
 
         return (
             f"Successfully minted and registered IP asset with terms:\n"
@@ -182,10 +181,75 @@ def mint_and_register_ip_with_terms(
             f"IP ID: {response['ipId']}\n"
             f"Token ID: {response['tokenId']}\n"
             f"License Terms IDs: {response['licenseTermsIds']}\n"
-            f"View the IPA here: https://aeneid.explorer.story.foundation/ipa/{response['ipId']}"
+            f"View the IPA here: {explorer_url}/ipa/{response['ipId']}"
         )
     except Exception as e:
         return f"Error minting and registering IP with terms: {str(e)}"
+
+@mcp.tool()
+def create_spg_nft_collection(
+    name: str, 
+    symbol: str, 
+    is_public_minting: bool = True,
+    mint_open: bool = True,
+    mint_fee_recipient: str = None,
+    contract_uri: str = "",
+    base_uri: str = "",
+    max_supply: int = None,
+    mint_fee: int = None,
+    mint_fee_token: str = None,
+    owner: str = None
+) -> str:
+    """
+    Create a new SPG NFT collection that can be used for minting and registering IP assets.
+    
+    Args:
+        name: (REQUIRED) Name of the NFT collection
+        symbol: (REQUIRED) Symbol for the NFT collection
+        is_public_minting: (OPTIONAL, default=True) Whether anyone can mint NFTs from this collection
+        mint_open: (OPTIONAL, default=True) Whether minting is currently enabled
+        mint_fee_recipient: (OPTIONAL) Address to receive minting fees (defaults to zero address)
+        contract_uri: (OPTIONAL) URI for the collection metadata (ERC-7572 standard)
+        base_uri: (OPTIONAL) Base URI for the collection. If not empty, tokenURI will be either 
+                 baseURI + token ID or baseURI + nftMetadataURI
+        max_supply: (OPTIONAL) Maximum supply of the collection (defaults to unlimited)
+        mint_fee: (OPTIONAL) Cost to mint a token (defaults to 0)
+        mint_fee_token: (OPTIONAL) Token address used for minting fees (defaults to native token)
+        owner: (OPTIONAL) Owner address of the collection (defaults to sender)
+    
+    Returns:
+        str: Information about the created collection
+    """
+    try:
+        response = story_service.create_spg_nft_collection(
+            name=name,
+            symbol=symbol,
+            is_public_minting=is_public_minting,
+            mint_open=mint_open,
+            mint_fee_recipient=mint_fee_recipient,
+            contract_uri=contract_uri,
+            base_uri=base_uri,
+            max_supply=max_supply,
+            mint_fee=mint_fee,
+            mint_fee_token=mint_fee_token,
+            owner=owner
+        )
+        
+        return (
+            f"Successfully created SPG NFT collection:\n"
+            f"Name: {name}\n"
+            f"Symbol: {symbol}\n"
+            f"Transaction Hash: {response['tx_hash']}\n"
+            f"SPG NFT Contract Address: {response['spg_nft_contract']}\n"
+            f"Base URI: {base_uri if base_uri else 'Not set'}\n"
+            f"Max Supply: {max_supply if max_supply is not None else 'Unlimited'}\n"
+            f"Mint Fee: {mint_fee if mint_fee is not None else '0'}\n"
+            f"Mint Fee Token: {mint_fee_token if mint_fee_token else 'Not set'}\n"
+            f"Owner: {owner if owner else 'Default (sender)'}\n\n"
+            f"You can now use this contract address with the mint_and_register_ip_with_terms tool."
+        )
+    except Exception as e:
+        return f"Error creating SPG NFT collection: {str(e)}"
 
 # @mcp.tool()
 # def register_ip_asset(nft_contract: str, token_id: int, metadata: dict) -> str:

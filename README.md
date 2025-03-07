@@ -11,6 +11,71 @@ This server provides MCP (Model Context Protocol) tools for interacting with Sto
 - Upload image to ipfs via Pinata [External]
 - Upload ip and nft metadata via Pinata [External]
 
+```mermaid
+graph TD
+    subgraph "MCP Host" 
+        style MCP Host fill:#F5F5FF,stroke:#9999CC,stroke-width:2px,rx:10,ry:10
+        Agent["AI Agent<br>(Claude, IDEs, Tools)"]
+        style Agent fill:#E6E6FA,stroke:#9370DB,stroke-width:2px,rx:8,ry:8
+    end
+
+    subgraph "StoryScan MCP Server"
+        style StoryScan MCP Server fill:#F0F8FF,stroke:#87CEFA,stroke-width:2px,rx:10,ry:10
+        StoryscanService["StoryScan Service"]
+        style StoryscanService fill:#E6E6FA,stroke:#9370DB,stroke-width:2px,rx:8,ry:8
+        
+        subgraph "StoryScan Tools"
+            style StoryScan Tools fill:#F0FFFF,stroke:#5F9EA0,stroke-width:2px,rx:10,ry:10
+            StoryscanToolset["Balance & Stats<br>check_balance,<br>get_address_overview,<br>get_transactions,<br>interpret_transaction,<br>get_token_holdings,<br>get_nft_holdings,<br>get_stats"]
+            style StoryscanToolset fill:#E0FFFF,stroke:#5F9EA0,stroke-width:2px,rx:8,ry:8
+        end
+    end
+
+    subgraph "Story SDK MCP Server"
+        style Story SDK MCP Server fill:#F5FFFA,stroke:#98FB98,stroke-width:2px,rx:10,ry:10
+        StoryService["Story Service"]
+        style StoryService fill:#E6E6FA,stroke:#9370DB,stroke-width:2px,rx:8,ry:8
+        
+        subgraph "Story SDK Tools"
+            style Story SDK Tools fill:#F0FFF0,stroke:#90EE90,stroke-width:2px,rx:10,ry:10
+            IPFSTools["IPFS Tools<br>upload_image_to_ipfs<br>create_ip_metadata"]
+            style IPFSTools fill:#E0FFFF,stroke:#5F9EA0,stroke-width:2px,rx:8,ry:8
+            IPTools["IP Management Tools<br>mint_and_register_ip_with_terms<br>get_license_terms,<br>mint_license_tokens,<br>send_ip,<br>create_spg_nft_collection"]
+            style IPTools fill:#E0FFFF,stroke:#5F9EA0,stroke-width:2px,rx:8,ry:8
+        end
+    end
+
+    subgraph "External Resources"
+        style External Resources fill:#FFF0F5,stroke:#FFB6C1,stroke-width:2px,rx:10,ry:10
+        IPFS[(IPFS/Pinata<br>Storage)]
+        style IPFS fill:#FFE4E1,stroke:#DB7093,stroke-width:2px,rx:15,ry:15
+        Blockchain[(Story Protocol<br>Blockchain)]
+        style Blockchain fill:#E0F8E0,stroke:#90EE90,stroke-width:2px,rx:15,ry:15
+        StoryScan[(StoryScan/Blockscout<br>API)]
+        style StoryScan fill:#E6F3FF,stroke:#87CEFA,stroke-width:2px,rx:15,ry:15
+    end
+
+    Agent <--MCP Protocol--> StoryService
+    Agent <--MCP Protocol--> StoryscanService
+    StoryscanService --> StoryscanToolset
+    StoryService --> IPFSTools
+    StoryService --> IPTools
+    
+    StoryscanToolset <--API Calls--> StoryScan
+    IPFSTools <--API Calls--> IPFS
+    IPTools <--RPC Calls--> Blockchain
+
+    classDef legend fill:#FFFFFF,stroke:#333333,stroke-width:1px,rx:4,ry:4;
+    
+    MCP["MCP"]
+    Story["Story"]
+    External["External"]
+    
+    style MCP fill:#E6E6FA,stroke:#9370DB,stroke-width:2px,rx:4,ry:4
+    style Story fill:#E0FFFF,stroke:#5F9EA0,stroke-width:2px,rx:4,ry:4
+    style External fill:#FFE4E1,stroke:#DB7093,stroke-width:2px,rx:4,ry:4
+```
+
 ## Setup
 
 1. Install dependencies using uv:
