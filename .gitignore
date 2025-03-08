@@ -1,2 +1,23 @@
 .env
 __pycache__
+# OS generated files
+.DS_Store
+
+# Python generated files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+
+# Test files
+test*.py
+
+# Log files
+*.log
+
+# IDE settings
+.vscode/
+.idea/
