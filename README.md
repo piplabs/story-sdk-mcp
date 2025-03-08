@@ -6,7 +6,7 @@ This repository serves as a central hub for Story Protocol's Model Context Proto
 
 ```
 story-mcp-hub/
-├── storyscan-mcp/       # MCP server for blockchain data queries via StoryScan 
+├── storyscan-mcp/       # MCP server for blockchain data queries via StoryScan
 ├── story-sdk-mcp/       # MCP server for Story Protocol SDK interactions
 ├── utils/               # Shared utilities for MCP servers
 ├── .venv/               # Python virtual environment
@@ -17,7 +17,7 @@ story-mcp-hub/
 
 ```mermaid
 graph TD
-    subgraph "MCP Hub" 
+    subgraph "MCP Hub"
         style MCP Hub fill:#F5F5FF,stroke:#9999CC,stroke-width:2px,rx:10,ry:10
         Agent["AI Agent<br>(Claude, IDEs, Tools)"]
         style Agent fill:#E6E6FA,stroke:#9370DB,stroke-width:2px,rx:8,ry:8
@@ -27,7 +27,7 @@ graph TD
         style StoryScan MCP Server fill:#F0F8FF,stroke:#87CEFA,stroke-width:2px,rx:10,ry:10
         StoryscanService["StoryScan Service"]
         style StoryscanService fill:#E6E6FA,stroke:#9370DB,stroke-width:2px,rx:8,ry:8
-        
+
         subgraph "StoryScan Tools"
             style StoryScan Tools fill:#F0FFFF,stroke:#5F9EA0,stroke-width:2px,rx:10,ry:10
             StoryscanToolset["Balance & Stats<br>check_balance,<br>get_address_overview,<br>get_transactions,<br>interpret_transaction,<br>get_token_holdings,<br>get_nft_holdings,<br>get_stats"]
@@ -39,7 +39,7 @@ graph TD
         style Story SDK MCP Server fill:#F5FFFA,stroke:#98FB98,stroke-width:2px,rx:10,ry:10
         StoryService["Story Service"]
         style StoryService fill:#E6E6FA,stroke:#9370DB,stroke-width:2px,rx:8,ry:8
-        
+
         subgraph "Story SDK Tools"
             style Story SDK Tools fill:#F0FFF0,stroke:#90EE90,stroke-width:2px,rx:10,ry:10
             IPFSTools["IPFS Tools<br>upload_image_to_ipfs<br>create_ip_metadata"]
@@ -64,7 +64,7 @@ graph TD
     StoryscanService --> StoryscanToolset
     StoryService --> IPFSTools
     StoryService --> IPTools
-    
+
     StoryscanToolset <--API Calls--> StoryScan
     IPFSTools <--API Calls--> IPFS
     IPTools <--RPC Calls--> Blockchain
@@ -73,9 +73,11 @@ graph TD
 ## MCP Servers
 
 ### StoryScan MCP Server
+
 Provides tools for querying blockchain data, including address balances, transactions, and blockchain statistics.
 
 **Tools:**
+
 - `check_balance`: Check the balance of an address
 - `get_transactions`: Get recent transactions for an address
 - `get_stats`: Get current blockchain statistics
@@ -85,9 +87,11 @@ Provides tools for querying blockchain data, including address balances, transac
 - `interpret_transaction`: Get a human-readable interpretation of a transaction
 
 ### Story SDK MCP Server
+
 Provides tools for interacting with Story Protocol's Python SDK.
 
 **Tools:**
+
 - `get_license_terms`: Retrieve license terms for a specific ID
 - `mint_license_tokens`: Mint license tokens for a specific IP and license terms
 - `send_ip`: Send IP tokens to a specified address using native token transfer
@@ -98,6 +102,7 @@ Provides tools for interacting with Story Protocol's Python SDK.
 ## Setup
 
 ### Prerequisites
+
 - Python 3.12+
 - UV package manager
 
@@ -112,7 +117,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 2. Clone this repository:
 
 ```bash
-git clone https://github.com/storyprotocol/story-mcp-hub.git
+git clone https://github.com/piplabs/story-mcp-hub.git
 cd story-mcp-hub
 ```
 
@@ -125,6 +130,7 @@ uv sync
 4. Set up environment variables for each server:
 
 For StoryScan MCP:
+
 ```bash
 cd storyscan-mcp
 cp .env.example .env
@@ -132,6 +138,7 @@ cp .env.example .env
 ```
 
 For Story SDK MCP:
+
 ```bash
 cd story-sdk-mcp
 cp .env.example .env
