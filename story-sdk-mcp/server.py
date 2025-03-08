@@ -1,19 +1,26 @@
 from mcp.server.fastmcp import FastMCP
-from src.services.story_service import StoryService
+from services.story_service import StoryService
 import os
 from dotenv import load_dotenv
 from typing import Union
 import json
+import sys
+from pathlib import Path
+
+# Add the parent directory to the Python path so we can import utils
+sys.path.append(str(Path(__file__).parent.parent))
 
 # Load environment variables
 load_dotenv(override=True)
 print(f"RPC URL from env: {os.getenv('RPC_PROVIDER_URL')}")
 
 # Get environment variables
-private_key = os.getenv('WALLET_PRIVATE_KEY')
-rpc_url = os.getenv('RPC_PROVIDER_URL')
+private_key = os.getenv("WALLET_PRIVATE_KEY")
+rpc_url = os.getenv("RPC_PROVIDER_URL")
 if not private_key or not rpc_url:
-    raise ValueError("WALLET_PRIVATE_KEY and RPC_PROVIDER_URL environment variables are required")
+    raise ValueError(
+        "WALLET_PRIVATE_KEY and RPC_PROVIDER_URL environment variables are required"
+    )
 
 # Initialize Story service
 story_service = StoryService(rpc_url=rpc_url, private_key=private_key)
@@ -23,14 +30,15 @@ mcp = FastMCP("Story Protocol Server")
 
 # Only register IPFS-related tools if IPFS is enabled
 if story_service.ipfs_enabled:
+
     @mcp.tool()
     def upload_image_to_ipfs(image_data: Union[bytes, str]) -> str:
         """
         Upload an image to IPFS using Pinata API.
-        
+
         Args:
             image_data: Either bytes of image data or URL to image
-        
+
         Returns:
             str: IPFS URI of the uploaded image
         """
@@ -42,20 +50,17 @@ if story_service.ipfs_enabled:
 
     @mcp.tool()
     def create_ip_metadata(
-        image_uri: str,
-        name: str,
-        description: str,
-        attributes: list = None
+        image_uri: str, name: str, description: str, attributes: list = None
     ) -> str:
         """
         Create and upload both NFT and IP metadata to IPFS.
-        
+
         Args:
             image_uri: IPFS URI of the uploaded image
             name: Name of the NFT/IP
             description: Description of the NFT/IP
             attributes: Optional list of attribute dictionaries
-        
+
         Returns:
             str: Result message with metadata details and IPFS URIs
         """
@@ -64,7 +69,7 @@ if story_service.ipfs_enabled:
                 image_uri=image_uri,
                 name=name,
                 description=description,
-                attributes=attributes
+                attributes=attributes,
             )
             return (
                 f"Successfully created and uploaded metadata:\n"
@@ -76,6 +81,7 @@ if story_service.ipfs_enabled:
         except Exception as e:
             return f"Error creating metadata: {str(e)}"
 
+
 @mcp.tool()
 def get_license_terms(license_terms_id: int) -> str:
     """Get the license terms for a specific ID."""
@@ -85,17 +91,18 @@ def get_license_terms(license_terms_id: int) -> str:
     except Exception as e:
         return f"Error retrieving license terms: {str(e)}"
 
+
 @mcp.tool()
 def mint_license_tokens(
     licensor_ip_id: str,
     license_terms_id: int,
     receiver: str = None,
     max_minting_fee: int = None,
-    max_revenue_share: int = None
+    max_revenue_share: int = None,
 ) -> str:
     """
     Mint license tokens for a given IP and license terms.
-    
+
     :param licensor_ip_id: The ID of the licensor's intellectual property
     :param license_terms_id: The ID of the license terms
     :param receiver: Optional; the recipient's address for the tokens
@@ -109,9 +116,9 @@ def mint_license_tokens(
             license_terms_id=license_terms_id,
             receiver=receiver,
             max_minting_fee=max_minting_fee,
-            max_revenue_share=max_revenue_share
+            max_revenue_share=max_revenue_share,
         )
-        
+
         return (
             f"Successfully minted license tokens:\n"
             f"Transaction Hash: {response['txHash']}\n"
@@ -122,11 +129,12 @@ def mint_license_tokens(
     except Exception as e:
         return f"Error minting license tokens: {str(e)}"
 
+
 @mcp.tool()
 def send_ip(to_address: str, amount: float) -> str:
     """
     Send IP tokens to another address.
-    
+
     :param to_address: The recipient's wallet address
     :param amount: Amount of IP tokens to send (1 IP = 1 Ether)
     :return: Transaction result message
@@ -137,13 +145,14 @@ def send_ip(to_address: str, amount: float) -> str:
     except Exception as e:
         return f"Error sending IP: {str(e)}"
 
+
 @mcp.tool()
 def mint_and_register_ip_with_terms(
     commercial_rev_share: int,
     derivatives_allowed: bool,
     registration_metadata: dict = None,
     recipient: str = None,
-    spg_nft_contract: str = None  # Make this optional
+    spg_nft_contract: str = None,  # Make this optional
 ) -> str:
     """
     Mint an NFT, register it as an IP Asset, and attach PIL terms.
@@ -169,11 +178,15 @@ def mint_and_register_ip_with_terms(
             derivatives_allowed=derivatives_allowed,
             registration_metadata=registration_metadata,
             recipient=recipient,
-            spg_nft_contract=spg_nft_contract
+            spg_nft_contract=spg_nft_contract,
         )
 
         # Determine which explorer URL to use based on network
-        explorer_url = "https://explorer.story.foundation" if story_service.network == "mainnet" else "https://aeneid.explorer.story.foundation"
+        explorer_url = (
+            "https://explorer.story.foundation"
+            if story_service.network == "mainnet"
+            else "https://aeneid.explorer.story.foundation"
+        )
 
         return (
             f"Successfully minted and registered IP asset with terms:\n"
@@ -186,10 +199,11 @@ def mint_and_register_ip_with_terms(
     except Exception as e:
         return f"Error minting and registering IP with terms: {str(e)}"
 
+
 @mcp.tool()
 def create_spg_nft_collection(
-    name: str, 
-    symbol: str, 
+    name: str,
+    symbol: str,
     is_public_minting: bool = True,
     mint_open: bool = True,
     mint_fee_recipient: str = None,
@@ -198,11 +212,11 @@ def create_spg_nft_collection(
     max_supply: int = None,
     mint_fee: int = None,
     mint_fee_token: str = None,
-    owner: str = None
+    owner: str = None,
 ) -> str:
     """
     Create a new SPG NFT collection that can be used for minting and registering IP assets.
-    
+
     Args:
         name: (REQUIRED) Name of the NFT collection
         symbol: (REQUIRED) Symbol for the NFT collection
@@ -210,13 +224,13 @@ def create_spg_nft_collection(
         mint_open: (OPTIONAL, default=True) Whether minting is currently enabled
         mint_fee_recipient: (OPTIONAL) Address to receive minting fees (defaults to zero address)
         contract_uri: (OPTIONAL) URI for the collection metadata (ERC-7572 standard)
-        base_uri: (OPTIONAL) Base URI for the collection. If not empty, tokenURI will be either 
+        base_uri: (OPTIONAL) Base URI for the collection. If not empty, tokenURI will be either
                  baseURI + token ID or baseURI + nftMetadataURI
         max_supply: (OPTIONAL) Maximum supply of the collection (defaults to unlimited)
         mint_fee: (OPTIONAL) Cost to mint a token (defaults to 0)
         mint_fee_token: (OPTIONAL) Token address used for minting fees (defaults to native token)
         owner: (OPTIONAL) Owner address of the collection (defaults to sender)
-    
+
     Returns:
         str: Information about the created collection
     """
@@ -232,9 +246,9 @@ def create_spg_nft_collection(
             max_supply=max_supply,
             mint_fee=mint_fee,
             mint_fee_token=mint_fee_token,
-            owner=owner
+            owner=owner,
         )
-        
+
         return (
             f"Successfully created SPG NFT collection:\n"
             f"Name: {name}\n"
@@ -251,11 +265,12 @@ def create_spg_nft_collection(
     except Exception as e:
         return f"Error creating SPG NFT collection: {str(e)}"
 
+
 # @mcp.tool()
 # def register_ip_asset(nft_contract: str, token_id: int, metadata: dict) -> str:
 #     """
 #     Register an NFT as an IP Asset.
-    
+
 #     :param nft_contract: NFT contract address
 #     :param token_id: Token ID of the NFT
 #     :param metadata: IP Asset metadata following Story Protocol standard
@@ -271,7 +286,7 @@ def create_spg_nft_collection(
 # def attach_license_terms(ip_id: str, license_terms_id: int) -> str:
 #     """
 #     Attach a licensing policy to an IP Asset.
-    
+
 #     :param ip_id: IP Asset ID
 #     :param license_terms_id: License terms ID to attach
 #     :return: Result message
@@ -286,7 +301,7 @@ def create_spg_nft_collection(
 # def mint_and_register_nft(to_address: str, metadata_uri: str, ip_metadata: dict) -> str:
 #     """
 #     Mint an NFT and register it as IP in one transaction.
-    
+
 #     :param to_address: Recipient's wallet address
 #     :param metadata_uri: URI for the NFT metadata
 #     :param ip_metadata: IP Asset metadata following Story Protocol standard
@@ -309,7 +324,7 @@ def create_spg_nft_collection(
 # ) -> str:
 #     """
 #     Upload a generated image, mint it as an NFT, and register it as IP.
-    
+
 #     :param image_data: Either bytes of image data or URL to image
 #     :param name: Name for the NFT
 #     :param description: Description for the NFT
