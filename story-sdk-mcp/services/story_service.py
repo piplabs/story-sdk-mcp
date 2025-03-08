@@ -6,8 +6,8 @@ import os
 from typing import Union
 import time
 import json
-from src.utils.address_resolver import create_address_resolver
-from src.utils.contract_addresses import get_contracts_by_chain_id, get_contracts_by_network_name, CHAIN_IDS
+from utils.address_resolver import create_address_resolver
+from utils.contract_addresses import get_contracts_by_chain_id, CHAIN_IDS
 
 class StoryService:
     def __init__(self, rpc_url: str, private_key: str, network: str = None):
