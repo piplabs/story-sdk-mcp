@@ -5,18 +5,24 @@ import logging
 from typing import TypedDict, List, Optional, Dict, Any
 
 # Set up logging
-logging.basicConfig(level=logging.INFO, filename='storyscan_service.log', filemode='a',
-                   format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger('storyscan_service')
+logging.basicConfig(
+    level=logging.INFO,
+    filename="storyscan_service.log",
+    filemode="a",
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger("storyscan_service")
 
 # Disable SSL warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 
 # Type definitions (similar to TypeScript interfaces)
 class GasPrices(TypedDict):
     average: float
     fast: float
     slow: float
+
 
 class BlockchainStats(TypedDict):
     total_blocks: str
@@ -34,6 +40,7 @@ class BlockchainStats(TypedDict):
     gas_prices_update_in: int
     static_gas_price: Optional[str]
 
+
 class Transaction(TypedDict):
     hash: str
     from_: Dict[str, str]  # Using from_ because 'from' is a Python keyword
@@ -44,14 +51,17 @@ class Transaction(TypedDict):
     fee: Dict[str, str]
     status: str
 
+
 class Tag(TypedDict):
     address_hash: str
     display_name: str
     label: str
 
+
 class WatchlistName(TypedDict):
     display_name: str
     label: str
+
 
 class TokenInfo(TypedDict):
     circulating_market_cap: Optional[str]
@@ -64,6 +74,7 @@ class TokenInfo(TypedDict):
     holders: str
     exchange_rate: Optional[str]
     total_supply: str
+
 
 class AddressOverview(TypedDict):
     hash: str
@@ -78,15 +89,18 @@ class AddressOverview(TypedDict):
     watchlist_names: List[WatchlistName]
     exchange_rate: Optional[str]
 
+
 class TokenHolding(TypedDict):
     token: TokenInfo
     value: str
     token_id: Optional[str]
     token_instance: Optional[dict]
 
+
 class TokenHoldingsResponse(TypedDict):
     items: List[TokenHolding]
     next_page_params: Optional[dict]
+
 
 class TokenInstance(TypedDict):
     is_unique: bool
@@ -99,18 +113,22 @@ class TokenInstance(TypedDict):
     token_type: str
     value: str
 
+
 class NFTCollection(TypedDict):
     token: TokenInfo
     amount: str
     token_instances: List[TokenInstance]
 
+
 class NFTCollectionsResponse(TypedDict):
     items: List[NFTCollection]
     next_page_params: Optional[dict]
 
+
 class TransactionSummary(TypedDict):
     summary_template: str
     summary_template_variables: dict
+
 
 class TransactionInterpretation(TypedDict):
     success: bool
@@ -118,21 +136,24 @@ class TransactionInterpretation(TypedDict):
     error: Optional[str] = None
     summaries: Optional[List[TransactionSummary]] = None
 
+
 class StoryscanService:
     def __init__(self, api_endpoint: str, disable_ssl_verification=False):
-        self.api_endpoint = api_endpoint.rstrip('/')
+        self.api_endpoint = api_endpoint.rstrip("/")
         self.disable_ssl_verification = disable_ssl_verification
         logger.info(f"Initialized StoryScan service with endpoint: {self.api_endpoint}")
 
     def _make_api_request(self, path: str, params: dict = None) -> dict:
         """Make a request to the Storyscan API."""
         url = f"{self.api_endpoint}/v2/{path}"
-        
+
         # Debug log to show the exact URL being requested
         logger.info(f"Making API request to: {url}")
-        
+
         try:
-            response = requests.get(url, params=params, verify=not self.disable_ssl_verification)
+            response = requests.get(
+                url, params=params, verify=not self.disable_ssl_verification
+            )
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
@@ -143,29 +164,31 @@ class StoryscanService:
         """Get the balance of an address."""
         try:
             data = self._make_api_request(f"addresses/{address}")
-            return {
-                "address": data["hash"],
-                "balance": data["coin_balance"]
-            }
+            return {"address": data["hash"], "balance": data["coin_balance"]}
         except Exception as e:
             logger.error(f"Error in get_address_balance: {str(e)}")
             raise Exception(f"Failed to get balance: {str(e)}")
 
-    def get_transaction_history(self, address: str, limit: int = 10) -> List[Transaction]:
+    def get_transaction_history(
+        self, address: str, limit: int = 10
+    ) -> List[Transaction]:
         """Get transaction history for an address."""
         try:
             data = self._make_api_request(f"addresses/{address}/transactions")
             transactions = data["items"][:limit]
-            return [{
-                "hash": tx["hash"],
-                "from_": tx["from"],
-                "to": tx["to"],
-                "value": tx["value"],
-                "timestamp": tx["timestamp"],
-                "block_number": tx["block_number"],
-                "fee": tx["fee"],
-                "status": tx["status"]
-            } for tx in transactions]
+            return [
+                {
+                    "hash": tx["hash"],
+                    "from_": tx["from"],
+                    "to": tx["to"],
+                    "value": tx["value"],
+                    "timestamp": tx["timestamp"],
+                    "block_number": tx["block_number"],
+                    "fee": tx["fee"],
+                    "status": tx["status"],
+                }
+                for tx in transactions
+            ]
         except Exception as e:
             logger.error(f"Error in get_transaction_history: {str(e)}")
             raise Exception(f"Failed to get transaction history: {str(e)}")
@@ -188,7 +211,7 @@ class StoryscanService:
                 total_gas_used=data["total_gas_used"],
                 gas_price_updated_at=data["gas_price_updated_at"],
                 gas_prices_update_in=data["gas_prices_update_in"],
-                static_gas_price=data["static_gas_price"]
+                static_gas_price=data["static_gas_price"],
             )
         except Exception as e:
             logger.error(f"Error in get_blockchain_stats: {str(e)}")
@@ -209,7 +232,7 @@ class StoryscanService:
                 private_tags=data["private_tags"],
                 public_tags=data["public_tags"],
                 watchlist_names=data["watchlist_names"],
-                exchange_rate=data.get("exchange_rate")
+                exchange_rate=data.get("exchange_rate"),
             )
         except Exception as e:
             logger.error(f"Error in get_address_overview: {str(e)}")
@@ -220,8 +243,7 @@ class StoryscanService:
         try:
             data = self._make_api_request(f"addresses/{address}/tokens")
             return TokenHoldingsResponse(
-                items=data["items"],
-                next_page_params=data.get("next_page_params")
+                items=data["items"], next_page_params=data.get("next_page_params")
             )
         except Exception as e:
             logger.error(f"Error in get_token_holdings: {str(e)}")
@@ -234,8 +256,7 @@ class StoryscanService:
             # Using the same endpoint as in the TypeScript version
             data = self._make_api_request(f"addresses/{address}/collectibles")
             return NFTCollectionsResponse(
-                items=data["items"],
-                next_page_params=data.get("next_page_params")
+                items=data["items"], next_page_params=data.get("next_page_params")
             )
         except Exception as e:
             logger.error(f"Error in get_nft_holdings: {str(e)}")
@@ -245,10 +266,10 @@ class StoryscanService:
         """Get a human-readable interpretation of a transaction."""
         try:
             data = self._make_api_request(f"transactions/{tx_hash}/summary")
-            
+
             # Log the exact response for debugging
             logger.info(f"API Response for transaction {tx_hash}: {data}")
-            
+
             # Simply return the raw API response
             return data
         except Exception as e:

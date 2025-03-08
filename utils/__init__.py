@@ -1,1 +1,1 @@
-# Utils package for Story SDK MCP 
+# Utils package for Story SDK MCP

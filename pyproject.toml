@@ -8,23 +8,19 @@ dependencies = [
     # MCP dependencies
     "mcp[cli]>=1.2.1",
     "python-dotenv>=1.0.1",
-    
     # Web3 and Story Protocol SDK
     "web3",
     "story-protocol-python-sdk @ git+https://github.com/storyprotocol/python-sdk.git",
-    
     # HTTP and API dependencies
     "httpx>=0.28.1",
     "requests>=2.32.3",
     "aiohttp>=3.11.12",
     "uvicorn>=0.34.0",
-    
     # IPFS and multiformats
     "pinata>=0.0.1",
     "multiformats>=0.3.1.post4",
     "py-multicodec>=0.2.1",
     "py-multiformats-cid>=0.4.4",
-    
     # Utilities
     "loguru>=0.7.3",
     "ruff>=0.9.7",

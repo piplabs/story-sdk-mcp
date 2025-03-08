@@ -19,6 +19,7 @@ if not api_endpoint:
 story_service = StoryscanService(api_endpoint, disable_ssl_verification=True)
 print(f"Initialized StoryScan service with API endpoint: {api_endpoint}")
 
+
 @mcp.tool()
 def check_balance(address: str):
     """Check the balance of an address. Remember its an EVM chain but the token is $IP"""
@@ -28,15 +29,16 @@ def check_balance(address: str):
     except Exception as e:
         return f"Error checking balance: {str(e)}"
 
+
 @mcp.tool()
 def get_transactions(address: str, limit: int = 10):
     """Get recent transactions for an address. Remember its an EVM chain but the token is $IP"""
     try:
         transactions = story_service.get_transaction_history(address, limit)
-        
+
         if not transactions:
             return f"No transactions found for {address}"
-        
+
         formatted_transactions = []
         for tx in transactions:
             date = tx["timestamp"]  # Could format this better if needed
@@ -50,10 +52,13 @@ def get_transactions(address: str, limit: int = 10):
                 f"---"
             )
             formatted_transactions.append(formatted_tx)
-        
-        return f"Recent transactions for {address}:\n\n" + "\n".join(formatted_transactions)
+
+        return f"Recent transactions for {address}:\n\n" + "\n".join(
+            formatted_transactions
+        )
     except Exception as e:
         return f"Error getting transactions: {str(e)}"
+
 
 @mcp.tool()
 def get_stats():
@@ -71,6 +76,7 @@ def get_stats():
     except Exception as e:
         return f"Error getting blockchain stats: {str(e)}"
 
+
 @mcp.tool()
 def get_address_overview(address: str):
     """Get a comprehensive overview of an address including ETH balance, token info,
@@ -87,16 +93,17 @@ def get_address_overview(address: str):
     except Exception as e:
         return f"Error getting address overview: {str(e)}"
 
+
 @mcp.tool()
 def get_token_holdings(address: str):
     """Get all ERC-20 token holdings for an address, including detailed token information
     and balances. Remember its an EVM chain but the token is $IP"""
     try:
         holdings = story_service.get_token_holdings(address)
-        
+
         if not holdings["items"]:
             return f"No token holdings found for {address}"
-        
+
         formatted_holdings = []
         for holding in holdings["items"]:
             token = holding["token"]
@@ -108,10 +115,11 @@ def get_token_holdings(address: str):
                 f"---"
             )
             formatted_holdings.append(formatted_holding)
-        
+
         return f"Token holdings for {address}:\n\n" + "\n".join(formatted_holdings)
     except Exception as e:
         return f"Error getting token holdings: {str(e)}"
+
 
 @mcp.tool()
 def get_nft_holdings(address: str):
@@ -119,10 +127,10 @@ def get_nft_holdings(address: str):
     individual token metadata. Remember its an EVM chain but the token is $IP"""
     try:
         collections = story_service.get_nft_holdings(address)
-        
+
         if not collections["items"]:
             return f"No NFT holdings found for {address}"
-        
+
         formatted_collections = []
         for collection in collections["items"]:
             token = collection["token"]
@@ -133,19 +141,20 @@ def get_nft_holdings(address: str):
                 f"---"
             )
             formatted_collections.append(formatted_collection)
-        
+
         return f"NFT holdings for {address}:\n\n" + "\n".join(formatted_collections)
     except Exception as e:
         return f"Error getting NFT holdings: {str(e)}"
+
 
 @mcp.tool()
 def interpret_transaction(transaction_hash: str) -> str:
     """
     Get a human-readable interpretation of a blockchain transaction.
-    
+
     Args:
         transaction_hash: The hash of the transaction to interpret
-        
+
     Returns:
         str: A human-readable summary of the transaction
     """
@@ -155,6 +164,7 @@ def interpret_transaction(transaction_hash: str) -> str:
         return str(interpretation)
     except Exception as e:
         return f"Error interpreting transaction: {str(e)}"
+
 
 if __name__ == "__main__":
     mcp.run()
